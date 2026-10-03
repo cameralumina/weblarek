@@ -1,4 +1,4 @@
-import type { IBuyer, TBuyerData, TBuyerErrors } from '../../types';
+import type { IBuyer, TBuyerErrors } from '../../types';
 
 const validationMessages: Record<keyof IBuyer, string> = {
     payment: 'Не выбран вид оплаты',
@@ -7,22 +7,29 @@ const validationMessages: Record<keyof IBuyer, string> = {
     phone: 'Укажите телефон',
 };
 
-export class Buyer {
-    private data: TBuyerData = {};
+const initialBuyerData: IBuyer = {
+    payment: null,
+    email: '',
+    phone: '',
+    address: '',
+};
 
-    setData(data: TBuyerData): void {
+export class Buyer {
+    private data: IBuyer = { ...initialBuyerData };
+
+    setData(data: Partial<IBuyer>): void {
         this.data = {
             ...this.data,
             ...data,
         };
     }
 
-    getData(): TBuyerData {
+    getData(): IBuyer {
         return { ...this.data };
     }
 
     clear(): void {
-        this.data = {};
+        this.data = { ...initialBuyerData };
     }
 
     validate(): TBuyerErrors {
@@ -32,15 +39,15 @@ export class Buyer {
             errors.payment = validationMessages.payment;
         }
 
-        if (!this.data.address?.trim()) {
+        if (!this.data.address.trim()) {
             errors.address = validationMessages.address;
         }
 
-        if (!this.data.email?.trim()) {
+        if (!this.data.email.trim()) {
             errors.email = validationMessages.email;
         }
 
-        if (!this.data.phone?.trim()) {
+        if (!this.data.phone.trim()) {
             errors.phone = validationMessages.phone;
         }
 

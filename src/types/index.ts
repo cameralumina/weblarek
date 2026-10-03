@@ -17,13 +17,11 @@ export interface IProduct {
 }
 
 export interface IBuyer {
-    payment: TPayment;
+    payment: TPayment | null;
     email: string;
     phone: string;
     address: string;
 }
-
-export type TBuyerData = Partial<IBuyer>;
 
 export type TBuyerErrors = Partial<Record<keyof IBuyer, string>>;
 
@@ -32,7 +30,8 @@ export interface IProductsResponse {
     items: IProduct[];
 }
 
-export type TOrder = IBuyer & {
+export type TOrder = Omit<IBuyer, 'payment'> & {
+    payment: TPayment;
     total: number;
     items: string[];
 };
