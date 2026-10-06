@@ -580,3 +580,6 @@ Presenter создаёт экземпляры всех классов и сод�
 7. `order:submit` при корректных оплате и адресе открывает `ContactsForm`.
 8. `contacts:submit` при отсутствии ошибок формирует `TOrder` и отправляет его через `WebLarekApi.createOrder()`.
 9. После успешного ответа корзина и данные покупателя очищаются, а в модальном окне отображается `Success` с итоговой суммой.
+
+
+https://github.com/cameralumina/weblarek
