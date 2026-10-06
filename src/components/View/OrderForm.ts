@@ -41,8 +41,6 @@ export class OrderForm extends Form<TOrderFormData> {
     }
 
     set address(value: string) {
-        if (this.addressInput.value !== value) {
-            this.addressInput.value = value;
-        }
+        this.addressInput.value = value;
     }
 }

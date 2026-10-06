@@ -53,14 +53,18 @@ export interface IModalData {
 }
 
 export interface ICardData {
-    id: string;
     title: string;
     price: number | null;
 }
 
+export interface IImageData {
+    src: string;
+    alt: string;
+}
+
 export interface ICatalogCardData extends ICardData {
     category: string;
-    image: string;
+    image: IImageData;
 }
 
 export interface IPreviewCardData extends ICatalogCardData {
@@ -93,6 +97,10 @@ export interface ISuccessData {
 
 export interface IProductIdEvent {
     id: string;
+}
+
+export interface ICardActions {
+    onClick: () => void;
 }
 
 export interface IPaymentChangeEvent {

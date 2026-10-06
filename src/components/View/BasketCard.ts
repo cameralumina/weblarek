@@ -1,24 +1,17 @@
 import { Card } from './Card';
-import type { IBasketCardData, IProductIdEvent } from '../../types';
-import type { IEvents } from '../base/Events';
+import type { IBasketCardData, ICardActions } from '../../types';
 import { ensureElement } from '../../utils/utils';
-import { appEvents } from '../../utils/events';
 
 export class BasketCard extends Card<IBasketCardData> {
     private readonly indexElement: HTMLElement;
     private readonly deleteButton: HTMLButtonElement;
 
-    constructor(container: HTMLElement, events: IEvents) {
+    constructor(container: HTMLElement, actions: ICardActions) {
         super(container);
         this.indexElement = ensureElement<HTMLElement>('.basket__item-index', container);
         this.deleteButton = ensureElement<HTMLButtonElement>('.basket__item-delete', container);
 
-        this.deleteButton.addEventListener('click', () => {
-            const id = this.container.dataset.id;
-            if (id) {
-                events.emit<IProductIdEvent>(appEvents.basketRemove, { id });
-            }
-        });
+        this.deleteButton.addEventListener('click', actions.onClick);
     }
 
     set index(value: number) {

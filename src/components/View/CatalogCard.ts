@@ -1,25 +1,18 @@
 import { Card } from './Card';
-import type { ICatalogCardData, IProductIdEvent } from '../../types';
-import type { IEvents } from '../base/Events';
+import type { ICatalogCardData, ICardActions, IImageData } from '../../types';
 import { ensureElement } from '../../utils/utils';
-import { appEvents } from '../../utils/events';
-import { categoryMap, CDN_URL } from '../../utils/constants';
+import { categoryMap } from '../../utils/constants';
 
 export class CatalogCard extends Card<ICatalogCardData> {
     private readonly categoryElement: HTMLElement;
     private readonly imageElement: HTMLImageElement;
 
-    constructor(container: HTMLElement, events: IEvents) {
+    constructor(container: HTMLElement, actions: ICardActions) {
         super(container);
         this.categoryElement = ensureElement<HTMLElement>('.card__category', container);
         this.imageElement = ensureElement<HTMLImageElement>('.card__image', container);
 
-        this.container.addEventListener('click', () => {
-            const id = this.container.dataset.id;
-            if (id) {
-                events.emit<IProductIdEvent>(appEvents.cardSelect, { id });
-            }
-        });
+        this.container.addEventListener('click', actions.onClick);
     }
 
     set category(value: string) {
@@ -31,7 +24,7 @@ export class CatalogCard extends Card<ICatalogCardData> {
         }
     }
 
-    set image(value: string) {
-        this.setImage(this.imageElement, `${CDN_URL}${value}`, this.titleElement.textContent ?? '');
+    set image(value: IImageData) {
+        this.setImage(this.imageElement, value.src, value.alt);
     }
 }

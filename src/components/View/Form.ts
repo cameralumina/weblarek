@@ -18,7 +18,7 @@ export abstract class Form<T extends IFormState> extends Component<T> {
 
         container.addEventListener('submit', (event) => {
             event.preventDefault();
-            events.emit(submitEvent, {});
+            events.emit(submitEvent);
         });
     }
 

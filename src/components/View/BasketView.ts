@@ -16,7 +16,7 @@ export class BasketView extends Component<IBasketViewData> {
         this.checkoutButton = ensureElement<HTMLButtonElement>('.basket__button', container);
 
         this.checkoutButton.addEventListener('click', () => {
-            events.emit(appEvents.basketCheckout, {});
+            events.emit(appEvents.basketCheckout);
         });
     }
 

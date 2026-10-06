@@ -18,6 +18,5 @@ export const appEvents = {
     contactsPhoneChange: 'contacts:phone-change',
     contactsSubmit: 'contacts:submit',
 
-    modalClose: 'modal:close',
     successClose: 'success:close',
 } as const;

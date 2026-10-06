@@ -24,7 +24,7 @@ import type {
     TBuyerErrors,
     TOrder,
 } from './types';
-import { API_URL } from './utils/constants';
+import { API_URL, CDN_URL } from './utils/constants';
 import { appEvents } from './utils/events';
 import { cloneTemplate, ensureElement } from './utils/utils';
 
@@ -47,10 +47,12 @@ const successTemplate = ensureElement<HTMLTemplateElement>('#success');
 
 const gallery = new Gallery(ensureElement<HTMLElement>('.gallery'));
 const header = new Header(ensureElement<HTMLElement>('.header'), events);
-const modal = new Modal(ensureElement<HTMLElement>('#modal-container'), events);
+const modal = new Modal(ensureElement<HTMLElement>('#modal-container'));
 const previewCard = new PreviewCard(
     cloneTemplate<HTMLElement>(previewCardTemplate),
-    events
+    {
+        onClick: () => events.emit(appEvents.productToggle),
+    }
 );
 const basketView = new BasketView(
     cloneTemplate<HTMLElement>(basketTemplate),
@@ -87,11 +89,16 @@ const renderBasket = (): void => {
     const itemElements = basketItems.map((item, index) => {
         const card = new BasketCard(
             cloneTemplate<HTMLElement>(basketCardTemplate),
-            events
+            {
+                onClick: () => {
+                    events.emit<IProductIdEvent>(appEvents.basketRemove, {
+                        id: item.id,
+                    });
+                },
+            }
         );
 
         return card.render({
-            id: item.id,
             title: item.title,
             price: item.price,
             index: index + 1,
@@ -107,7 +114,7 @@ const renderBasket = (): void => {
     header.render({ counter: basketModel.getItemsCount() });
 };
 
-const updateBuyerViews = (): void => {
+const renderOrderForm = (showErrors = true): void => {
     const buyer = buyerModel.getData();
     const errors = buyerModel.validate();
 
@@ -115,29 +122,51 @@ const updateBuyerViews = (): void => {
         payment: buyer.payment,
         address: buyer.address,
         valid: !errors.payment && !errors.address,
-        errors: getErrorsText(errors, ['payment', 'address']),
+        errors: showErrors
+            ? getErrorsText(errors, ['payment', 'address'])
+            : '',
     });
+};
+
+const renderContactsForm = (showErrors = true): void => {
+    const buyer = buyerModel.getData();
+    const errors = buyerModel.validate();
 
     contactsForm.render({
         email: buyer.email,
         phone: buyer.phone,
         valid: !errors.email && !errors.phone,
-        errors: getErrorsText(errors, ['email', 'phone']),
+        errors: showErrors
+            ? getErrorsText(errors, ['email', 'phone'])
+            : '',
     });
+};
+
+const updateBuyerViews = (): void => {
+    renderOrderForm();
+    renderContactsForm();
 };
 
 events.on(appEvents.productsChanged, () => {
     const cards = productsModel.getItems().map((product) => {
         const card = new CatalogCard(
             cloneTemplate<HTMLElement>(catalogCardTemplate),
-            events
+            {
+                onClick: () => {
+                    events.emit<IProductIdEvent>(appEvents.cardSelect, {
+                        id: product.id,
+                    });
+                },
+            }
         );
 
         return card.render({
-            id: product.id,
             title: product.title,
             category: product.category,
-            image: product.image,
+            image: {
+                src: product.image,
+                alt: product.title,
+            },
             price: product.price,
         });
     });
@@ -162,10 +191,12 @@ events.on(appEvents.selectedProductChanged, () => {
     const isUnavailable = product.price === null;
 
     const cardElement = previewCard.render({
-        id: product.id,
         title: product.title,
         category: product.category,
-        image: product.image,
+        image: {
+            src: product.image,
+            alt: product.title,
+        },
         description: product.description,
         price: product.price,
         buttonText: isUnavailable
@@ -179,13 +210,13 @@ events.on(appEvents.selectedProductChanged, () => {
     openModal(cardElement);
 });
 
-events.on<IProductIdEvent>(appEvents.productToggle, ({ id }) => {
-    const product = productsModel.getItem(id);
+events.on(appEvents.productToggle, () => {
+    const product = productsModel.getSelectedItem();
     if (!product || product.price === null) {
         return;
     }
 
-    if (basketModel.hasItem(id)) {
+    if (basketModel.hasItem(product.id)) {
         basketModel.removeItem(product);
     } else {
         basketModel.addItem(product);
@@ -211,7 +242,7 @@ events.on<IProductIdEvent>(appEvents.basketRemove, ({ id }) => {
 });
 
 events.on(appEvents.basketCheckout, () => {
-    updateBuyerViews();
+    renderOrderForm(false);
     openModal(orderForm.render());
 });
 
@@ -236,23 +267,11 @@ events.on(appEvents.buyerChanged, () => {
 });
 
 events.on(appEvents.orderSubmit, () => {
-    const errors = buyerModel.validate();
-    if (errors.payment || errors.address) {
-        updateBuyerViews();
-        return;
-    }
-
-    updateBuyerViews();
+    renderContactsForm(false);
     openModal(contactsForm.render());
 });
 
 events.on(appEvents.contactsSubmit, () => {
-    const errors = buyerModel.validate();
-    if (Object.keys(errors).length > 0) {
-        updateBuyerViews();
-        return;
-    }
-
     const buyer = buyerModel.getData();
     const order: TOrder = {
         ...buyer,
@@ -274,21 +293,23 @@ events.on(appEvents.contactsSubmit, () => {
         });
 });
 
-events.on(appEvents.modalClose, () => {
-    modal.close();
-});
-
 events.on(appEvents.successClose, () => {
     modal.close();
 });
 
 renderBasket();
-updateBuyerViews();
+renderOrderForm(false);
+renderContactsForm(false);
 
 webLarekApi
     .getProducts()
     .then((response) => {
-        productsModel.setItems(response.items);
+        const products = response.items.map((product) => ({
+            ...product,
+            image: `${CDN_URL}${product.image}`,
+        }));
+
+        productsModel.setItems(products);
     })
     .catch((error: unknown) => {
         console.error('Ошибка загрузки каталога товаров:', error);

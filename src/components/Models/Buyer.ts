@@ -26,7 +26,7 @@ export class Buyer {
             ...this.data,
             ...data,
         };
-        this.events.emit(appEvents.buyerChanged, {});
+        this.events.emit(appEvents.buyerChanged);
     }
 
     getData(): IBuyer {
@@ -35,7 +35,7 @@ export class Buyer {
 
     clear(): void {
         this.data = { ...initialBuyerData };
-        this.events.emit(appEvents.buyerChanged, {});
+        this.events.emit(appEvents.buyerChanged);
     }
 
     validate(): TBuyerErrors {
