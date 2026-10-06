@@ -1,4 +1,6 @@
 import type { IBuyer, TBuyerErrors } from '../../types';
+import type { IEvents } from '../base/Events';
+import { appEvents } from '../../utils/events';
 
 const validationMessages: Record<keyof IBuyer, string> = {
     payment: 'Не выбран вид оплаты',
@@ -17,11 +19,14 @@ const initialBuyerData: IBuyer = {
 export class Buyer {
     private data: IBuyer = { ...initialBuyerData };
 
+    constructor(private readonly events: IEvents) {}
+
     setData(data: Partial<IBuyer>): void {
         this.data = {
             ...this.data,
             ...data,
         };
+        this.events.emit(appEvents.buyerChanged, {});
     }
 
     getData(): IBuyer {
@@ -30,6 +35,7 @@ export class Buyer {
 
     clear(): void {
         this.data = { ...initialBuyerData };
+        this.events.emit(appEvents.buyerChanged, {});
     }
 
     validate(): TBuyerErrors {
